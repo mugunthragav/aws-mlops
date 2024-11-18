@@ -30,7 +30,13 @@ def register_and_promote():
             raise
 
     # Get the latest version of the model
-    latest_version = client.get_latest_versions(model_name, stages=["None"])[0].version
+    versions = client.get_latest_versions(model_name, stages=["Production"])
+    if versions:
+        latest_version = versions[0].version
+        print(f"Latest version of {model_name}: {latest_version}")
+    else:
+        print(f"No versions found for {model_name} in the 'Production' stage.")
+        return  # Exit if no version is found
 
     # Transition model to production
     client.transition_model_version_stage(
