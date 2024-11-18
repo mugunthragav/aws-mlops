@@ -4,12 +4,13 @@ from mlflow.tracking import MlflowClient
 
 def deploy_model():
     model_name = "HousePricePrediction01"
-    stage = "Production"
-    region = "us-east-1"
+    stage = "Production"  # The model stage you want to deploy
+    region = "us-east-1"   # Specify the AWS region
 
-    # Check if the model exists in the registry
+    # Check if the model exists in the registry and fetch the latest version in the specified stage
     client = MlflowClient()
     try:
+        # Get the latest model version in the 'Production' stage
         model_versions = client.get_latest_versions(model_name, stages=[stage])
         if not model_versions:
             raise ValueError(f"No model version found for {model_name} in stage {stage}")
@@ -19,22 +20,23 @@ def deploy_model():
         print(f"Error checking model version: {str(e)}")
         return
 
-    # Deploy to SageMaker
+    # Define SageMaker deployment parameters
     app_name = "house-price-prediction-endpoint-01"
-    execution_role_arn = "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/YOUR_SAGEMAKER_EXECUTION_ROLE"  # Replace with your IAM role ARN
-    instance_type = "ml.m5.large"
-    instance_count = 1
+    execution_role_arn = "arn:aws:iam::207567773639:role/service-role/aws-mlflow"  # Replace with your IAM role ARN
+    instance_type = "ml.t2.medium"  # Choose the instance type for deployment
+    instance_count = 1  # Number of instances for deployment
 
     try:
         # Deploy the model to SageMaker
+        model_uri = f"models:/{model_name}/{latest_model_version}"  # Correct model URI based on version
         mfs.push_model_to_sagemaker(
-            model_uri=f"models:/{model_name}/{stage}",  # Ensure the stage is correct
+            model_uri=model_uri,
             app_name=app_name,
             region_name=region,
             execution_role_arn=execution_role_arn,
             instance_type=instance_type,
             instance_count=instance_count,
-            mode="replace"
+            mode="replace"  # Replace the existing endpoint if one exists
         )
         print(f"Model successfully deployed to SageMaker with endpoint: {app_name}")
         print(f"Endpoint URL: https://runtime.sagemaker.{region}.amazonaws.com/endpoints/{app_name}/invocations")
