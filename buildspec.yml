@@ -21,22 +21,8 @@ phases:
     commands:
       - echo "Registering and promoting the best model..."
       - python register_promote.py
-      
-      - echo "Fetching model URI from MLflow tracking server..."
-      # Fetch the latest model URI using MLflow's API in the script
-      - python get_model_uri.py
-
-      - echo "Building Docker image and pushing to ECR..."
-      # Build the Docker image and push it to ECR using the dynamically fetched model URI
-      - mlflow sagemaker build-and-push-container -m $MODEL_URI
-
       - echo "Deploying to SageMaker..."
-      # Deploy the model to SageMaker using the fetched model URI
-      - mlflow deployments create -t sagemaker -m $MODEL_URI \
-          -C region_name="us-east-1" \
-          -C instance_type="ml.t2.medium" \
-          -C instance_count=1 \
-          -C env='{"DISABLE_NGINX": "true"}'
+      - python deploy.py
 
 artifacts:
   files:
