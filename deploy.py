@@ -10,13 +10,16 @@ def deploy_model():
     # Initialize MLflow Client
     client = MlflowClient()
 
-    # Step 1: Retrieve the registered model and its versions
+    # Step 1: Ensure the registered model exists
     try:
-        # Retrieve the model's registered versions
         registered_model = client.get_registered_model(model_name)
         print(f"Registered Model Info: {registered_model}")
-        
-        # Retrieve the latest version of the model in the "Production" stage
+    except Exception as e:
+        print(f"Error retrieving registered model: {str(e)}")
+        return
+
+    # Step 2: Retrieve the latest model version in the 'Production' stage
+    try:
         model_versions = client.get_latest_versions(model_name, stages=[stage])
         if not model_versions:
             raise ValueError(f"No model version found for {model_name} in stage {stage}")
@@ -28,13 +31,13 @@ def deploy_model():
         print(f"Error retrieving model version: {str(e)}")
         return
 
-    # Step 2: Define SageMaker deployment parameters
+    # Step 3: Define SageMaker deployment parameters
     app_name = "house-price-prediction-endpoint-01"
     execution_role_arn = "arn:aws:iam::207567773639:role/service-role/aws-mlflow"  # Replace with your IAM role ARN
     instance_type = "ml.t2.medium"  # Choose the instance type for deployment
     instance_count = 1  # Number of instances for deployment
 
-    # Step 3: Deploy the model to SageMaker
+    # Step 4: Deploy the model to SageMaker
     try:
         model_uri = f"models:/{model_name}/{latest_model_version}"  # Correct model URI based on version
         print(f"Model URI: {model_uri}")  # Print model URI for debugging
