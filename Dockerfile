@@ -1,19 +1,16 @@
-# Use a base image that has Python installed
-FROM python:3.9-slim
+# Base image for MLflow PyFunc
+FROM continuumio/miniconda3:4.12.0
 
-# Set the working directory in the container
-WORKDIR /app
+# Set working directory
+WORKDIR /mlflow
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install MLflow and required dependencies
+RUN conda install -y python=3.8 && \
+    pip install mlflow==2.17.2 boto3 && \
+    conda clean -a
 
-# Copy the rest of the application code
-COPY . .
+# Expose default MLflow ports
+EXPOSE 5000
 
-# Expose the port on which the Streamlit app runs
-EXPOSE 8501
-
-# Command to run the Streamlit app
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
-
+# Set the entrypoint to MLflow
+ENTRYPOINT ["mlflow"]
