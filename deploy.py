@@ -1,18 +1,19 @@
 import mlflow
 import mlflow.sagemaker as mfs
 from mlflow.tracking import MlflowClient
+import sys
 
 def deploy_model():
-    model_name = "HousePricePrediction01"
-    app_name = "house-price-predictor"
-    region = "us-west-2"
-    execution_role_arn = "arn:aws:iam::207567773639:role/sagemakerops"
-    instance_type = "ml.t2.medium"
+    model_name = "HousePricePrediction01"  # Replace with your model name
+    region = "us-east-1"                   # AWS region
+    instance_type = "ml.t2.medium"         # Instance type for deployment
+    instance_count = 1                     # Instance count
+    execution_role_arn = "arn:aws:iam::207567773639:role/sagemakerops"  # Replace with your IAM role ARN
 
     # Set MLflow tracking URI
-    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
+    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")  # Replace with your MLflow tracking URI
 
-    # Get the latest model version in 'Production'
+    # Get the latest model version in 'Production' stage
     client = MlflowClient()
     versions = client.get_latest_versions(model_name, stages=["Production"])
     if not versions:
@@ -21,22 +22,21 @@ def deploy_model():
     latest_version = versions[0].version
     model_uri = f"models:/{model_name}/{latest_version}"
 
-    print(f"Deploying model from URI: {model_uri}")
+    print(f"Deploying model from {model_uri} to SageMaker...")
 
-    # Use _deploy to deploy the model
     try:
-        mfs._deploy(
-            app_name=app_name,
+        # Deploy the model to SageMaker using MLflow SageMaker API
+        mfs.create_deployment(
             model_uri=model_uri,
             region_name=region,
-            execution_role_arn=execution_role_arn,
             instance_type=instance_type,
-            instance_count=1,
-            mode="create"
+            instance_count=instance_count,
+            env={"DISABLE_NGINX": "true"}  # Optional, depending on your setup
         )
-        print(f"Model successfully deployed as {app_name} on SageMaker.")
+        print("Model deployed successfully!")
     except Exception as e:
-        print(f"Failed to deploy model: {e}")
+        print(f"Error deploying model: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     deploy_model()
