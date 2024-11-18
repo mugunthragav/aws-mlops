@@ -51,7 +51,7 @@ def deploy_model():
             region_name=region,
             execution_role_arn=execution_role_arn,  # IAM Role for SageMaker
             instance_type=instance_type,
-            
+            app_name=endpoint_name,
             mode="replace"  # Replace the existing endpoint if one exists
         )
 
