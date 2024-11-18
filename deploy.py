@@ -8,7 +8,7 @@ def deploy_model():
     stage = "Production"  # The model stage you want to deploy
     region = "us-east-1"   # Specify the AWS region
 
-    # Set the MLflow tracking URI
+    # Set the MLflow tracking URI (adjust this as needed)
     mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")  # Replace with your actual MLflow URI
 
     # Initialize MLflow Client
@@ -39,20 +39,19 @@ def deploy_model():
     endpoint_name = "house-price-prediction-endpoint-01"  # SageMaker endpoint name
     execution_role_arn = "arn:aws:iam::207567773639:role/service-role/aws-mlflow"  # Replace with your IAM role ARN
     instance_type = "ml.t2.medium"  # Choose the instance type for deployment
-    instance_count = 1  # Number of instances for deployment
 
-    # Step 4: Deploy the model to SageMaker
+    # Step 4: Deploy the model to SageMaker using the correct MLflow deployment function
     try:
         model_uri = f"models:/{model_name}/{latest_model_version}"  # Correct model URI based on version
         print(f"Model URI: {model_uri}")  # Print model URI for debugging
 
-        # Deploy model using MLflow SageMaker integration
-        mfs.push_model_to_sagemaker(
+        # Deploy the model using MLflow's SageMaker deploy function
+        mfs._deploy(
             model_uri=model_uri,
-            role_arn=execution_role_arn,  # Use 'role_arn' instead of 'app_name'
-            instance_type=instance_type,
-            instance_count=instance_count,
             region_name=region,
+            role_arn=execution_role_arn,  # IAM Role for SageMaker
+            instance_type=instance_type,
+            endpoint_name=endpoint_name,  # Specify the endpoint name
             mode="replace"  # Replace the existing endpoint if one exists
         )
 
