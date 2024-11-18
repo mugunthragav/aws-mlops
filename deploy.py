@@ -6,6 +6,7 @@ def deploy_model():
     model_name = "HousePricePrediction01"
     stage = "Production"  # The model stage you want to deploy
     region = "us-east-1"   # Specify the AWS region
+    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
 
     # Initialize MLflow Client
     client = MlflowClient()
