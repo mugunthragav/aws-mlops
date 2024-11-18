@@ -33,8 +33,8 @@ phases:
       - echo "Deploying to SageMaker..."
       # Deploy the model to SageMaker using the fetched model URI
       - mlflow deployments create -t sagemaker -m $MODEL_URI \
-          -C region_name=us-east-1 \
-          -C instance_type=ml.t2.medium \
+          -C region_name="us-east-1" \
+          -C instance_type="ml.t2.medium" \
           -C instance_count=1 \
           -C env='{"DISABLE_NGINX": "true"}'
 
