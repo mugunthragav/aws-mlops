@@ -29,6 +29,8 @@ def deploy_model():
     try:
         # Deploy the model to SageMaker
         model_uri = f"models:/{model_name}/{latest_model_version}"  # Correct model URI based on version
+        print(f"Model URI: {model_uri}")  # Print model URI for debugging
+
         mfs.push_model_to_sagemaker(
             model_uri=model_uri,
             app_name=app_name,
