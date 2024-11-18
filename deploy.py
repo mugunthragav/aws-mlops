@@ -35,8 +35,9 @@ def deploy_model():
         deployment_client.create_deployment(
             name=model_name,
             model_uri=model_uri,
+            execution_role_arn=execution_role_arn,
             config={
-                "image_url": image_ecr_url  # Provide the ECR URL of your custom image
+                "image_url": image_ecr_url,  # Provide the ECR URL of your custom image
             }
         )
 
