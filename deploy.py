@@ -1,20 +1,28 @@
+import mlflow.deployments
 import boto3
-import mlflow.sagemaker as mfs
 
-def deploy_model():
-    model_name = "HousePricePrediction01"
-    stage = "Production"
-    region = "us-east-1"
+# AWS configuration
+aws_region = 'your_aws_region'
+execution_role_arn = 'arn:aws:iam::207567773639:role/service-role/aws-mlflow'  # Replace with your SageMaker execution role ARN
+model_name = 'HousePricePrediction01'
+model_version = '1'  # Replace with your model version if needed
+endpoint_name = 'house-price-prediction-endpoint'  # Replace with desired endpoint name
 
-    # Deploy to SageMaker
-    app_name = "house-price-prediction-endpoint-01"
-    mfs.deploy(
-        model_uri=f"models:/{model_name}/{stage}",
-        app_name=app_name,
-        region_name=region,
-        mode="replace"
-    )
-    print(f"Model deployed to SageMaker with endpoint: {app_name}")
+# MLflow model URI
+model_uri = f'models:/{model_name}/{model_version}'
 
-if __name__ == "__main__":
-    deploy_model()
+# Deploy model to SageMaker
+client = mlflow.deployments.get_deploy_client("sagemaker")
+
+client.create_deployment(
+    name=endpoint_name,
+    model_uri=model_uri,
+    config={
+        "execution_role_arn": execution_role_arn,
+        "region_name": aws_region,
+        "instance_type": "ml.m5.large",
+        "instance_count": 1
+    }
+)
+
+print(f"Model deployed to SageMaker and endpoint '{endpoint_name}' created.")
