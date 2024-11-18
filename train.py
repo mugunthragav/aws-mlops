@@ -7,7 +7,8 @@ import boto3
 
 # Initialize S3 client
 s3 = boto3.client('s3')
-processed_bucket = 'your-processed-bucket'
+processed_bucket = 'data-bucket-house-processed-data'
+model_bucket = 'model-bucket-house-model'
 
 def train_and_log():
     # Load preprocessed data
@@ -23,8 +24,8 @@ def train_and_log():
     }
 
     # Set MLflow experiment
-    mlflow.set_tracking_uri("http://your-mlflow-server")
-    mlflow.set_experiment("HousePricePrediction")
+    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
+    mlflow.set_experiment("HousePricePrediction01")
 
     best_model_name = None
     best_score = float('-inf')  # Initialize to lowest possible score
@@ -44,7 +45,7 @@ def train_and_log():
                 best_score = score
                 best_model_name = name
                 joblib.dump(model, 'best_model.pkl')
-                s3.upload_file('best_model.pkl', processed_bucket, 'best_model.pkl')
+                s3.upload_file('best_model.pkl',model_bucket, 'best_model.pkl')
                 print(f"New best model: {name} with score {score}")
 
     print("Training complete. Best model:", best_model_name)
