@@ -2,12 +2,12 @@ import boto3
 import mlflow.sagemaker as mfs
 
 def deploy_model():
-    model_name = "HousePricePrediction"
+    model_name = "HousePricePrediction01"
     stage = "Production"
     region = "us-east-1"
 
     # Deploy to SageMaker
-    app_name = "house-price-prediction-endpoint"
+    app_name = "house-price-prediction-endpoint-01"
     mfs.deploy(
         model_uri=f"models:/{model_name}/{stage}",
         app_name=app_name,
