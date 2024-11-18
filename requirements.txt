@@ -1,0 +1,10 @@
+mlflow
+pandas
+scikit-learn
+streamlit
+numpy
+black
+pytest
+
+
+
