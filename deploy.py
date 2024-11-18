@@ -49,7 +49,7 @@ def deploy_model():
         mfs._deploy(
             model_uri=model_uri,
             region_name=region,
-            role_arn=execution_role_arn,  # IAM Role for SageMaker
+            execution_role_arn=execution_role_arn,  # IAM Role for SageMaker
             instance_type=instance_type,
             endpoint_name=endpoint_name,  # Specify the endpoint name
             mode="replace"  # Replace the existing endpoint if one exists
