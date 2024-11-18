@@ -1,5 +1,5 @@
 import mlflow
-import mlflow.sagemaker as mfs
+import mlflow.deployments
 from mlflow.tracking import MlflowClient
 import sys
 
@@ -13,7 +13,7 @@ def deploy_model():
     # Set MLflow tracking URI
     mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")  # Replace with your MLflow tracking URI
 
-    # Get the latest model version in 'Production' stage
+    # Get the latest model version in 'Production' stage from the Model Registry
     client = MlflowClient()
     versions = client.get_latest_versions(model_name, stages=["Production"])
     if not versions:
@@ -24,15 +24,22 @@ def deploy_model():
 
     print(f"Deploying model from {model_uri} to SageMaker...")
 
+    # Replace <ECR-URL> with your actual ECR URL in the format {account_id}.dkr.ecr.{region}.amazonaws.com/{repo_name}:{tag}
+    image_ecr_url = "207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc"  # Replace with your actual ECR URL
+
     try:
-        # Deploy the model to SageMaker using MLflow SageMaker API
-        mfs.create_deployment(
+        # Get the deployment client for SageMaker
+        deployment_client = mlflow.deployments.get_deploy_client("sagemaker:/" + region)
+
+        # Create the deployment on SageMaker
+        deployment_client.create_deployment(
+            name=model_name,
             model_uri=model_uri,
-            region_name=region,
-            instance_type=instance_type,
-            instance_count=instance_count,
-            env={"DISABLE_NGINX": "true"}  # Optional, depending on your setup
+            config={
+                "image_url": image_ecr_url  # Provide the ECR URL of your custom image
+            }
         )
+
         print("Model deployed successfully!")
     except Exception as e:
         print(f"Error deploying model: {e}")
