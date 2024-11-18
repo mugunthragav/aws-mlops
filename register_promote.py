@@ -4,18 +4,18 @@ import joblib
 
 # Initialize S3 client
 s3 = boto3.client('s3')
-processed_bucket = 'your-processed-bucket'
+model_bucket = 'model-bucket-house-model'
 
 def register_and_promote():
     # Download best model
-    s3.download_file(processed_bucket, 'best_model.pkl', 'best_model.pkl')
+    s3.download_file(model_bucket, 'best_model.pkl', 'best_model.pkl')
     model = joblib.load('best_model.pkl')
 
-    mlflow.set_tracking_uri("http://your-mlflow-server")
+    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
     client = mlflow.tracking.MlflowClient()
 
     # Register model
-    model_name = "HousePricePrediction"
+    model_name = "HousePricePrediction01"
     mlflow.sklearn.log_model(model, model_name)
 
     # Transition to production
