@@ -37,7 +37,7 @@ def deploy_model():
 
     # Step 3: Define SageMaker deployment parameters
     endpoint_name = "house-price-prediction-endpoint-01"  # SageMaker endpoint name
-    execution_role_arn = "arn:aws:iam::207567773639:role/service-role/aws-mlflow"  # Replace with your IAM role ARN
+    execution_role_arn = "arn:aws:iam::207567773639:role/sagemakerops"  # Replace with your IAM role ARN
     instance_type = "ml.t2.medium"  # Choose the instance type for deployment
 
     # Step 4: Deploy the model to SageMaker using the correct MLflow deployment function
