@@ -1,0 +1,36 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8
+    commands:
+      - pip install -r requirements.txt
+      - pip install boto3 joblib scikit-learn sagemaker black pytest
+
+  pre_build:
+    commands:
+      - echo "Running code formatting with Black..."
+      - black mlops/  # Format the code first
+      - echo "Verifying code formatting with Black..."
+      - black --check mlops/  # Check formatting after applying it
+      - echo "Running unit tests..."
+      - pytest tests/
+      - echo "Starting data preprocessing..."
+      - python mlops/preprocess.py
+
+  build:
+    commands:
+      - echo "Starting model training..."
+      - python mlops/train.py
+
+  post_build:
+    commands:
+      - echo "Deploying model to SageMaker endpoint..."
+      - python mlops/deploy.py
+
+artifacts:
+  files:
+    - model.pkl
+    - scaler.pkl
+    - mlops/inference.py
