@@ -1,10 +1,9 @@
+boto3
 mlflow
-pandas
 scikit-learn
-streamlit
+pandas
+joblib
 numpy
-black
-pytest
 
 
 
