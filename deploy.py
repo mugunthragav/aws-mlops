@@ -7,7 +7,9 @@ def deploy_model():
     model_name = "HousePricePrediction01"
     stage = "Production"  # The model stage you want to deploy
     region = "us-east-1"   # Specify the AWS region
-    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
+
+    # Set the MLflow tracking URI
+    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")  # Replace with your actual MLflow URI
 
     # Initialize MLflow Client
     client = MlflowClient()
@@ -34,7 +36,7 @@ def deploy_model():
         return
 
     # Step 3: Define SageMaker deployment parameters
-    app_name = "house-price-prediction-endpoint-01"
+    endpoint_name = "house-price-prediction-endpoint-01"  # SageMaker endpoint name
     execution_role_arn = "arn:aws:iam::207567773639:role/service-role/aws-mlflow"  # Replace with your IAM role ARN
     instance_type = "ml.t2.medium"  # Choose the instance type for deployment
     instance_count = 1  # Number of instances for deployment
@@ -47,16 +49,15 @@ def deploy_model():
         # Deploy model using MLflow SageMaker integration
         mfs.push_model_to_sagemaker(
             model_uri=model_uri,
-            app_name=app_name,
-            region_name=region,
-            execution_role_arn=execution_role_arn,
+            role_arn=execution_role_arn,  # Use 'role_arn' instead of 'app_name'
             instance_type=instance_type,
             instance_count=instance_count,
+            region_name=region,
             mode="replace"  # Replace the existing endpoint if one exists
         )
 
-        print(f"Model successfully deployed to SageMaker with endpoint: {app_name}")
-        print(f"Endpoint URL: https://runtime.sagemaker.{region}.amazonaws.com/endpoints/{app_name}/invocations")
+        print(f"Model successfully deployed to SageMaker with endpoint: {endpoint_name}")
+        print(f"Endpoint URL: https://runtime.sagemaker.{region}.amazonaws.com/endpoints/{endpoint_name}/invocations")
         
     except Exception as e:
         print(f"Deployment failed due to error: {str(e)}")
