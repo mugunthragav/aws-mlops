@@ -6,8 +6,8 @@ import boto3
 
 # Initialize S3 client
 s3 = boto3.client('s3')
-data_bucket = 'your-data-bucket'
-processed_bucket = 'your-processed-bucket'
+data_bucket = 'data-bucket-house-raw-data'
+processed_bucket = 'data-bucket-house-processed-data'
 
 def preprocess_data():
     # Download dataset from S3
