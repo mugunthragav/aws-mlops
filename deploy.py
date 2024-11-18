@@ -1,6 +1,7 @@
 import boto3
 import mlflow.sagemaker as mfs
 from mlflow.tracking import MlflowClient
+import mlflow
 
 def deploy_model():
     model_name = "HousePricePrediction01"
