@@ -22,6 +22,10 @@ def train_and_log():
     y_train = pd.read_csv('y_train.csv').squeeze()  # Convert to Series
     y_test = pd.read_csv('y_test.csv').squeeze()  # Convert to Series
 
+    # Ensure correct number of features
+    assert X_train.shape[1] == 12, "X_train should have 12 features"
+    assert X_test.shape[1] == 12, "X_test should have 12 features"
+
     # Define models
     models = {
         "RandomForest": RandomForestRegressor(n_estimators=100, random_state=42),
