@@ -16,7 +16,9 @@ def preprocess_data():
     df = pd.read_csv('Housing.csv')
     categorical_columns = ['mainroad', 'guestroom', 'basement', 'hotwaterheating', 'airconditioning', 'prefarea', 'furnishingstatus']
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
-    X = df.drop('price', axis=1)
+    
+    # Ensuring only features are included
+    X = df.drop(columns=['price'])
     y = df['price']
 
     # Split data and scale features
@@ -26,18 +28,18 @@ def preprocess_data():
     X_test_scaled = scaler.transform(X_test)
 
     # Save processed data and scaler
-    pd.DataFrame(X_train_scaled, columns=X_train.columns).to_csv('X_train.csv', index=False)
-    pd.DataFrame(X_test_scaled, columns=X_test.columns).to_csv('X_test.csv', index=False)
+    pd.DataFrame(X_train_scaled, columns=X.columns).to_csv('X_train.csv', index=False)
+    pd.DataFrame(X_test_scaled, columns=X.columns).to_csv('X_test.csv', index=False)
     y_train.to_csv('y_train.csv', index=False)
     y_test.to_csv('y_test.csv', index=False)
-    
+    joblib.dump(scaler, 'scaler.pkl')
 
     # Upload to S3
     s3.upload_file('X_train.csv', processed_bucket, 'X_train.csv')
     s3.upload_file('X_test.csv', processed_bucket, 'X_test.csv')
     s3.upload_file('y_train.csv', processed_bucket, 'y_train.csv')
     s3.upload_file('y_test.csv', processed_bucket, 'y_test.csv')
-    
+    s3.upload_file('scaler.pkl', processed_bucket, 'scaler.pkl')
 
     print("Data preprocessing completed.")
 
