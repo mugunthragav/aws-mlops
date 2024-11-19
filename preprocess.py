@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import boto3
+import joblib
 
 # Initialize S3 client
 s3 = boto3.client('s3')
