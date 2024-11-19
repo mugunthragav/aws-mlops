@@ -29,6 +29,8 @@ phases:
       - echo "Setting AWS region and execution role..."
       - export AWS_REGION="us-east-1"
       - export EXECUTION_ROLE_ARN="arn:aws:iam::207567773639:role/sagemakerops"
+      - echo "Authenticating to Docker Hub..."
+      - echo "$DOCKER_HUB_PASSWORD" | docker login --username "$DOCKER_HUB_USERNAME" --password-stdin
       - echo "Building Docker image..."
       - mlflow models build-docker -m $MODEL_URI -n mlflow-pyfunc
       - echo "Logging in to ECR..."
