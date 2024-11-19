@@ -55,6 +55,9 @@ def train_and_log():
                 best_model_name = name
                 joblib.dump(model, 'best_model.pkl')
                 s3.upload_file('best_model.pkl', model_bucket, 'best_model.pkl')
+                with open('best_model_name.txt', 'w') as f:
+                    f.write(name)
+                s3.upload_file('best_model_name.txt', model_bucket, 'best_model_name.txt')
                 print(f"New best model: {name} with score {score}")
 
     print("Training complete. Best model:", best_model_name)
