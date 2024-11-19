@@ -37,7 +37,7 @@ def preprocess_data():
     s3.upload_file('X_test.csv', processed_bucket, 'X_test.csv')
     s3.upload_file('y_train.csv', processed_bucket, 'y_train.csv')
     s3.upload_file('y_test.csv', processed_bucket, 'y_test.csv')
-    s3.upload_file('scaler.pkl', processed_bucket, 'scaler.pkl')
+    
 
     print("Data preprocessing completed.")
 
