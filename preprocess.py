@@ -9,7 +9,6 @@ s3 = boto3.client('s3')
 data_bucket = 'data-bucket-house-raw-data'
 processed_bucket = 'data-bucket-house-processed-data'
 
-
 def preprocess_data():
     # Download dataset from S3
     s3.download_file(data_bucket, 'raw/Housing.csv', 'Housing.csv')
@@ -18,7 +17,7 @@ def preprocess_data():
     df = pd.read_csv('Housing.csv')
     categorical_columns = ['mainroad', 'guestroom', 'basement', 'hotwaterheating', 'airconditioning', 'prefarea']
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
-
+    
     # Manually encode 'furnishingstatus' to ensure a single column
     df['furnishingstatus'] = df['furnishingstatus'].map({
         'furnished': 2,
@@ -28,7 +27,7 @@ def preprocess_data():
 
     # Debug: Print the columns
     print(f"Columns after get_dummies and manual encoding: {df.columns.tolist()}")
-
+    
     # Ensuring only features are included
     X = df.drop(columns=['price'])
     y = df['price']
@@ -58,7 +57,6 @@ def preprocess_data():
     s3.upload_file('scaler.pkl', processed_bucket, 'scaler.pkl')
 
     print("Data preprocessing completed.")
-
 
 if __name__ == "__main__":
     preprocess_data()
