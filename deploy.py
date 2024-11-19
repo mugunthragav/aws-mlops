@@ -6,7 +6,7 @@ from mlflow.tracking import MlflowClient
 # AWS configuration
 aws_region = os.getenv("AWS_REGION", "us-east-1")  # Change to your AWS region
 execution_role_arn = os.getenv("EXECUTION_ROLE_ARN", "arn:aws:iam::207567773639:role/sagemakerops")  # Replace with your SageMaker execution role ARN
-image_uri = "207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:latest"  # Replace with your image URI
+image_uri = "207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:2.17.2"  # Replace with your image URI
 model_name = 'HousePricePrediction01'
 endpoint_name = 'house-price-prediction-endpoint001'  # Replace with desired endpoint name
 
