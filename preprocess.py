@@ -30,7 +30,7 @@ def preprocess_data():
     pd.DataFrame(X_test_scaled, columns=X_test.columns).to_csv('X_test.csv', index=False)
     y_train.to_csv('y_train.csv', index=False)
     y_test.to_csv('y_test.csv', index=False)
-    joblib.dump(scaler, 'scaler.pkl')
+    
 
     # Upload to S3
     s3.upload_file('X_train.csv', processed_bucket, 'X_train.csv')
