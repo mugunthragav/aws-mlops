@@ -32,14 +32,14 @@ phases:
       - echo "Authenticating to Docker Hub..."
       - echo "$DOCKER_HUB_PASSWORD" | docker login --username "$DOCKER_HUB_USERNAME" --password-stdin
       - echo "Building Docker image..."
-      - mlflow models build-docker -m $MODEL_URI -n mlflow-pyfunc
+      - mlflow models build-docker -m $MODEL_URI -n mlflow-pyfunc:2.17.2
       - echo "Tagging Docker image..."
-      - docker tag mlflow-pyfunc:latest 207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc
+      - docker tag mlflow-pyfunc:2.17.2 207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:2.17.2
       - echo "Logging in to ECR..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 207567773639.dkr.ecr.us-east-1.amazonaws.com
       - echo "Pushing Docker image to ECR..."
-      - docker push 207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:latest
-      - export IMAGE_URI="207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:latest"
+      - docker push 207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:2.17.2
+      - export IMAGE_URI="207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc:2.17.2"
       - echo "Deploying to SageMaker..."
       - python deploy.py
 
