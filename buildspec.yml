@@ -24,12 +24,18 @@ phases:
       - echo "Fetching model URI..."
       - python get_model_uri.py
       - export MODEL_URI=$(cat model_uri.txt)
+      - echo "Setting MLflow tracking URI..."
+      - export MLFLOW_TRACKING_URI="http://ec2-100-24-6-128.compute-1.amazonaws.com:5000"
+      - echo "Setting AWS region and execution role..."
+      - export AWS_REGION="us-east-1"
+      - export EXECUTION_ROLE_ARN="arn:aws:iam::207567773639:role/sagemakerops"
       - echo "Building Docker image..."
       - mlflow models build-docker -m $MODEL_URI -n mlflow-pyfunc
       - echo "Logging in to ECR..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 207567773639.dkr.ecr.us-east-1.amazonaws.com
       - echo "Pushing Docker image to ECR..."
       - docker push 207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc
+      - export IMAGE_URI="207567773639.dkr.ecr.us-east-1.amazonaws.com/mlflow-pyfunc"
       - echo "Deploying to SageMaker..."
       - python deploy.py
 
