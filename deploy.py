@@ -1,7 +1,7 @@
 import mlflow
 import mlflow.deployments
 import boto3
-
+from mlflow.tracking import MlflowClient
 # AWS configuration
 aws_region = "us-east-1"
 execution_role_arn = "arn:aws:iam::207567773639:role/sagemakerops"  # Replace with your SageMaker execution role ARN
