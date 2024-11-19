@@ -25,6 +25,7 @@ model_uri = f"models:/{model_name}/{latest_version}"
 # Deploy model to SageMaker
 client = mlflow.deployments.get_deploy_client("sagemaker")
 
+# Use 'replace' mode to update the existing endpoint
 client.create_deployment(
     name=endpoint_name,
     model_uri=model_uri,
@@ -33,8 +34,9 @@ client.create_deployment(
         "region_name": aws_region,
         "instance_type": "ml.t2.medium",
         "instance_count": 1,
-        "image_uri": image_uri
+        "image_uri": image_uri,
+        "mode": "replace"  # Use replace mode
     }
 )
 
-print(f"Model deployed to SageMaker and endpoint '{endpoint_name}' created.")
+print(f"Model deployed to SageMaker and endpoint '{endpoint_name}' updated.")
