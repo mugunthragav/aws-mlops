@@ -38,7 +38,7 @@ def deploy_model():
             
             config={
                 "image_url": image_ecr_url,
-                "execution_role_arn"=execution_role_arn# Provide the ECR URL of your custom image
+                "execution_role_arn":execution_role_arn# Provide the ECR URL of your custom image
             }
         )
 
