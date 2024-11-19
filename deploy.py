@@ -6,8 +6,8 @@ from datetime import datetime
 
 # Generate unique names using the current timestamp
 timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-model_name = f'HousePricePrediction_{timestamp}'
-endpoint_name = f'house-price-prediction-endpoint_{timestamp}'
+model_name = f'HousePricePrediction-{timestamp}'
+endpoint_name = f'house-price-prediction-endpoint-{timestamp}'
 
 # AWS configuration
 aws_region = os.getenv("AWS_REGION", "us-east-1")  # Change to your AWS region
