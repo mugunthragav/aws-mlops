@@ -2,6 +2,7 @@ import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
+import pandas as pd
 import joblib
 import boto3
 
@@ -11,11 +12,15 @@ processed_bucket = 'data-bucket-house-processed-data'
 model_bucket = 'model-bucket-house-model'
 
 def train_and_log():
-    # Load preprocessed data
-    s3.download_file(processed_bucket, 'X_train.pkl', 'X_train.pkl')
-    s3.download_file(processed_bucket, 'X_test.pkl', 'X_test.pkl')
-    X_train, y_train = joblib.load('X_train.pkl')
-    X_test, y_test = joblib.load('X_test.pkl')
+    # Download preprocessed data
+    s3.download_file(processed_bucket, 'X_train.csv', 'X_train.csv')
+    s3.download_file(processed_bucket, 'X_test.csv', 'X_test.csv')
+    s3.download_file(processed_bucket, 'y_train.csv', 'y_train.csv')
+    s3.download_file(processed_bucket, 'y_test.csv', 'y_test.csv')
+    X_train = pd.read_csv('X_train.csv')
+    X_test = pd.read_csv('X_test.csv')
+    y_train = pd.read_csv('y_train.csv').squeeze()  # Convert to Series
+    y_test = pd.read_csv('y_test.csv').squeeze()  # Convert to Series
 
     # Define models
     models = {
@@ -45,7 +50,7 @@ def train_and_log():
                 best_score = score
                 best_model_name = name
                 joblib.dump(model, 'best_model.pkl')
-                s3.upload_file('best_model.pkl',model_bucket, 'best_model.pkl')
+                s3.upload_file('best_model.pkl', model_bucket, 'best_model.pkl')
                 print(f"New best model: {name} with score {score}")
 
     print("Training complete. Best model:", best_model_name)
