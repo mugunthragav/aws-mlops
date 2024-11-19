@@ -1,13 +1,14 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import boto3
 import joblib
+import boto3
 
 # Initialize S3 client
 s3 = boto3.client('s3')
 data_bucket = 'data-bucket-house-raw-data'
 processed_bucket = 'data-bucket-house-processed-data'
+
 
 def preprocess_data():
     # Download dataset from S3
@@ -15,12 +16,26 @@ def preprocess_data():
 
     # Load and preprocess dataset
     df = pd.read_csv('Housing.csv')
-    categorical_columns = ['mainroad', 'guestroom', 'basement', 'hotwaterheating', 'airconditioning', 'prefarea', 'furnishingstatus']
+    categorical_columns = ['mainroad', 'guestroom', 'basement', 'hotwaterheating', 'airconditioning', 'prefarea']
     df = pd.get_dummies(df, columns=categorical_columns, drop_first=True)
-    
+
+    # Manually encode 'furnishingstatus' to ensure a single column
+    df['furnishingstatus'] = df['furnishingstatus'].map({
+        'furnished': 2,
+        'semi-furnished': 1,
+        'unfurnished': 0
+    })
+
+    # Debug: Print the columns
+    print(f"Columns after get_dummies and manual encoding: {df.columns.tolist()}")
+
     # Ensuring only features are included
     X = df.drop(columns=['price'])
     y = df['price']
+
+    # Debug: Print the number of features
+    print(f"Number of features: {X.shape[1]}")
+    print(f"Features: {X.columns.tolist()}")
 
     # Split data and scale features
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -43,6 +58,7 @@ def preprocess_data():
     s3.upload_file('scaler.pkl', processed_bucket, 'scaler.pkl')
 
     print("Data preprocessing completed.")
+
 
 if __name__ == "__main__":
     preprocess_data()
