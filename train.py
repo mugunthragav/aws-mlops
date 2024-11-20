@@ -3,8 +3,9 @@ import mlflow.sklearn
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from joblib import load, dump
-from models.models_config import models  # Import the models dictionary
 from mlflow.tracking import MlflowClient
 import boto3
 import os
@@ -14,7 +15,7 @@ s3 = boto3.client('s3')
 processed_bucket = 'data-bucket-house-processed-data'
 model_bucket = 'model-bucket-house-model'
 
-mlflow.set_tracking_uri("http://your-mlflow-tracking-server:5000")
+mlflow.set_tracking_uri(""http://ec2-100-24-6-128.compute-1.amazonaws.com:5000"")
 experiment_name = "House_Price_Prediction_Experiment"
 mlflow.set_experiment(experiment_name)
 
@@ -34,12 +35,28 @@ def load_processed_data():
 
     return X_train, X_test, y_train, y_test
 
-def get_train_test_data(X_train, X_test, y_train, y_test, test_size, random_state):
-    return train_test_split(X_train, X_test, test_size=test_size, random_state=random_state), train_test_split(y_train, y_test, test_size=test_size, random_state=random_state)
-
 def train_all_models(X_train, X_test, y_train, y_test):
     best_model_name = None
     best_rmse = float('inf')
+
+    # Define models and their configurations
+    models = {
+        "RandomForest": {
+            "class": RandomForestRegressor,
+            "parameters": {
+                "n_estimators": 100,
+                "random_state": 42
+            },
+            "test_size": 0.2,
+            "random_state": 42
+        },
+        "LinearRegression": {
+            "class": LinearRegression,
+            "parameters": {},
+            "test_size": 0.2,
+            "random_state": 42
+        }
+    }
 
     for model_name, model_info in models.items():
         model_class = model_info["class"]
@@ -48,7 +65,9 @@ def train_all_models(X_train, X_test, y_train, y_test):
         random_state = model_info["random_state"]
 
         # Prepare the train/test data
-        X_train_split, X_test_split, y_train_split, y_test_split = get_train_test_data(X_train, X_test, y_train, y_test, test_size, random_state)
+        X_train_split, X_test_split, y_train_split, y_test_split = train_test_split(
+            X_train, y_train, test_size=test_size, random_state=random_state
+        )
 
         # Instantiate the model
         model_instance = model_class(**parameters)
