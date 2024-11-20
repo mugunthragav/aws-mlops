@@ -15,7 +15,7 @@ s3 = boto3.client('s3')
 processed_bucket = 'data-bucket-house-processed-data'
 model_bucket = 'model-bucket-house-model'
 
-mlflow.set_tracking_uri(""http://ec2-100-24-6-128.compute-1.amazonaws.com:5000"")
+mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
 experiment_name = "House_Price_Prediction_Experiment"
 mlflow.set_experiment(experiment_name)
 
@@ -28,14 +28,19 @@ def load_processed_data():
     s3.download_file(processed_bucket, 'X_test.csv', 'X_test.csv')
     s3.download_file(processed_bucket, 'y_train.csv', 'y_train.csv')
     s3.download_file(processed_bucket, 'y_test.csv', 'y_test.csv')
+    s3.download_file(processed_bucket, 'pipeline.pkl', 'pipeline.pkl')
+
     X_train = pd.read_csv('X_train.csv')
     X_test = pd.read_csv('X_test.csv')
     y_train = pd.read_csv('y_train.csv').squeeze()  # Convert to Series
     y_test = pd.read_csv('y_test.csv').squeeze()  # Convert to Series
 
-    return X_train, X_test, y_train, y_test
+    # Load the preprocessing pipeline
+    pipeline = load('pipeline.pkl')
 
-def train_all_models(X_train, X_test, y_train, y_test):
+    return X_train, X_test, y_train, y_test, pipeline
+
+def train_all_models(X_train, X_test, y_train, y_test, pipeline):
     best_model_name = None
     best_rmse = float('inf')
 
@@ -102,6 +107,6 @@ def train_all_models(X_train, X_test, y_train, y_test):
     return best_model_name
 
 if __name__ == "__main__":
-    X_train, X_test, y_train, y_test = load_processed_data()
-    best_model_name = train_all_models(X_train, X_test, y_train, y_test)
+    X_train, X_test, y_train, y_test, pipeline = load_processed_data()
+    best_model_name = train_all_models(X_train, X_test, y_train, y_test, pipeline)
     print(f"Best model: {best_model_name}")
