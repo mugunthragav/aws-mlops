@@ -1,18 +1,28 @@
 import mlflow
 import mlflow.sklearn
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
 import pandas as pd
-import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from joblib import load, dump
+from models.models_config import models  # Import the models dictionary
+from mlflow.tracking import MlflowClient
 import boto3
+import os
 
 # Initialize S3 client
 s3 = boto3.client('s3')
 processed_bucket = 'data-bucket-house-processed-data'
 model_bucket = 'model-bucket-house-model'
 
-def train_and_log():
-    # Download preprocessed data
+mlflow.set_tracking_uri("http://your-mlflow-tracking-server:5000")
+experiment_name = "House_Price_Prediction_Experiment"
+mlflow.set_experiment(experiment_name)
+
+# Initiate the MLflow client
+client = MlflowClient()
+
+def load_processed_data():
+    # Download processed data from S3
     s3.download_file(processed_bucket, 'X_train.csv', 'X_train.csv')
     s3.download_file(processed_bucket, 'X_test.csv', 'X_test.csv')
     s3.download_file(processed_bucket, 'y_train.csv', 'y_train.csv')
@@ -22,45 +32,57 @@ def train_and_log():
     y_train = pd.read_csv('y_train.csv').squeeze()  # Convert to Series
     y_test = pd.read_csv('y_test.csv').squeeze()  # Convert to Series
 
-    # Ensure correct number of features
-    assert X_train.shape[1] == 12, "X_train should have 12 features"
-    assert X_test.shape[1] == 12, "X_test should have 12 features"
+    return X_train, X_test, y_train, y_test
 
-    # Define models
-    models = {
-        "RandomForest": RandomForestRegressor(n_estimators=100, random_state=42),
-        "LinearRegression": LinearRegression()
-    }
+def get_train_test_data(X_train, X_test, y_train, y_test, test_size, random_state):
+    return train_test_split(X_train, X_test, test_size=test_size, random_state=random_state), train_test_split(y_train, y_test, test_size=test_size, random_state=random_state)
 
-    # Set MLflow experiment
-    mlflow.set_tracking_uri("http://ec2-100-24-6-128.compute-1.amazonaws.com:5000")
-    mlflow.set_experiment("HousePricePrediction01")
-
+def train_all_models(X_train, X_test, y_train, y_test):
     best_model_name = None
-    best_score = float('-inf')  # Initialize to lowest possible score
+    best_rmse = float('inf')
 
-    # Train and evaluate models
-    for name, model in models.items():
-        with mlflow.start_run(run_name=name):
-            model.fit(X_train, y_train)
-            score = model.score(X_test, y_test)
+    for model_name, model_info in models.items():
+        model_class = model_info["class"]
+        parameters = model_info["parameters"]
+        test_size = model_info["test_size"]
+        random_state = model_info["random_state"]
 
-            # Log metrics and model
-            mlflow.log_metric("test_score", score)
-            mlflow.sklearn.log_model(model, "model")
+        # Prepare the train/test data
+        X_train_split, X_test_split, y_train_split, y_test_split = get_train_test_data(X_train, X_test, y_train, y_test, test_size, random_state)
 
-            # Update best model
-            if score > best_score:
-                best_score = score
-                best_model_name = name
-                joblib.dump(model, 'best_model.pkl')
+        # Instantiate the model
+        model_instance = model_class(**parameters)
+        model_instance.fit(X_train_split, y_train_split)
+        predictions = model_instance.predict(X_test_split)
+
+        # Calculate RMSE
+        rmse = mean_squared_error(y_test_split, predictions, squared=False)
+
+        # Log model to MLflow
+        with mlflow.start_run(nested=True):
+            mlflow.sklearn.log_model(model_instance, model_name)
+            mlflow.log_params(parameters)
+            mlflow.log_metric("rmse", rmse)
+
+            # Register the model
+            mlflow.register_model(f"runs:/{mlflow.active_run().info.run_id}/{model_name}", model_name)
+
+            # Check if this model is the best
+            if rmse < best_rmse:
+                best_rmse = rmse
+                best_model_name = model_name
+                dump(model_instance, 'best_model.pkl')
                 s3.upload_file('best_model.pkl', model_bucket, 'best_model.pkl')
                 with open('best_model_name.txt', 'w') as f:
-                    f.write(name)
+                    f.write(model_name)
                 s3.upload_file('best_model_name.txt', model_bucket, 'best_model_name.txt')
-                print(f"New best model: {name} with score {score}")
 
-    print("Training complete. Best model:", best_model_name)
+        # End the current run
+        mlflow.end_run()
+
+    return best_model_name
 
 if __name__ == "__main__":
-    train_and_log()
+    X_train, X_test, y_train, y_test = load_processed_data()
+    best_model_name = train_all_models(X_train, X_test, y_train, y_test)
+    print(f"Best model: {best_model_name}")
