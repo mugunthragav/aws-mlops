@@ -1,9 +1,5 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-import joblib
 import boto3
 import os
 
@@ -16,58 +12,37 @@ def load_data():
     # Download dataset from S3
     s3.download_file(data_bucket, 'raw/Housing.csv', 'Housing.csv')
 
-    # Load dataset
-    df = pd.read_csv('Housing.csv')
-    return df
+    # Load the dataset
+    data = pd.read_csv('Housing.csv')
+    data = pd.get_dummies(data, drop_first=True)
+    return data
 
-def preprocess_data(df):
-    # Define features and target
-    X = df.drop(columns=['price'])
-    y = df['price']
+def get_train_test_data(data, test_size, random_state):
+    # Prepare the train and test data
+    X = data.drop('price', axis=1)
+    y = data['price']
+    print(f'Training data shape: {X.shape}')
+    return train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-    # Define categorical and numerical columns
-    categorical_columns = ['mainroad', 'guestroom', 'basement', 'hotwaterheating', 'airconditioning', 'prefarea', 'furnishingstatus']
-    numerical_columns = [col for col in X.columns if col not in categorical_columns]
-
-    # Preprocessing for numerical data: scaling
-    numerical_transformer = StandardScaler()
-
-    # Preprocessing for categorical data: one-hot encoding
-    categorical_transformer = OneHotEncoder(drop='first')
-
-    # Combine preprocessing steps
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', numerical_transformer, numerical_columns),
-            ('cat', categorical_transformer, categorical_columns)
-        ]
-    )
-
-    # Create and apply pipeline
-    pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
-    X_processed = pipeline.fit_transform(X)
-
-    # Split data into train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X_processed, y, test_size=0.2, random_state=42)
-
-    # Save processed data and pipeline
+def save_data(X_train, X_test, y_train, y_test):
+    # Save processed data to CSV files
     processed_data_dir = 'data/processed'
     os.makedirs(processed_data_dir, exist_ok=True)
-    pd.DataFrame(X_train).to_csv(os.path.join(processed_data_dir, 'X_train.csv'), index=False)
-    pd.DataFrame(X_test).to_csv(os.path.join(processed_data_dir, 'X_test.csv'), index=False)
+    
+    X_train.to_csv(os.path.join(processed_data_dir, 'X_train.csv'), index=False)
+    X_test.to_csv(os.path.join(processed_data_dir, 'X_test.csv'), index=False)
     y_train.to_csv(os.path.join(processed_data_dir, 'y_train.csv'), index=False)
     y_test.to_csv(os.path.join(processed_data_dir, 'y_test.csv'), index=False)
-    joblib.dump(pipeline, os.path.join(processed_data_dir, 'pipeline.pkl'))
 
     # Upload processed data to S3
     s3.upload_file(os.path.join(processed_data_dir, 'X_train.csv'), processed_bucket, 'X_train.csv')
     s3.upload_file(os.path.join(processed_data_dir, 'X_test.csv'), processed_bucket, 'X_test.csv')
     s3.upload_file(os.path.join(processed_data_dir, 'y_train.csv'), processed_bucket, 'y_train.csv')
     s3.upload_file(os.path.join(processed_data_dir, 'y_test.csv'), processed_bucket, 'y_test.csv')
-    s3.upload_file(os.path.join(processed_data_dir, 'pipeline.pkl'), processed_bucket, 'pipeline.pkl')
 
-    print("Data preprocessing completed.")
+    print("Data saved and uploaded to S3.")
 
 if __name__ == "__main__":
-    df = load_data()
-    preprocess_data(df)
+    data = load_data()
+    X_train, X_test, y_train, y_test = get_train_test_data(data, test_size=0.2, random_state=42)
+    save_data(X_train, X_test, y_train, y_test)
